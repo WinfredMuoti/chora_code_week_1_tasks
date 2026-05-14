@@ -9,3 +9,11 @@ class Task:
     def mark_done(self) -> None:
         self.done = True
     
+class Tasklist:
+    def __init__(self) -> None:
+        self._tasks: list [Task] = []
+        
+    def __len__(self) -> int:
+        return len(self._tasks)   
+        
+        
