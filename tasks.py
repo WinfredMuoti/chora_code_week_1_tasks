@@ -8,3 +8,4 @@ class Task:
     
     def mark_done(self) -> None:
         self.done = True
+    
