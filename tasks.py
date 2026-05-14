@@ -5,3 +5,6 @@ class Task:
     title: str
     done: bool = False
     id: str = field(default_factory=lambda: str(uuid4()))
+    
+    def mark_done(self) -> None:
+        self.done = True
