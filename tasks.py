@@ -21,8 +21,8 @@ class TaskList:
 
     def get_by_id(self, task_id: str) -> Task:
         for task in self._tasks:
-            if task_id == task_id:
+            if task.id == task_id:
                 return task
-        
-           
+        else:
+            raise KeyError(task_id)
         

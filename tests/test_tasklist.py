@@ -25,4 +25,7 @@ def test_get_by_id_returns_matching_task(populated_list):
     target = populated_list._tasks[0]
     found = populated_list.get_by_id(target.id)
     assert found is target
-        
+    
+def test_get_by_id_raises_when_not_found(populated_list):
+    with pytest.raises(KeyError):
+        populated_list.get_by_id("does-not-exist")
