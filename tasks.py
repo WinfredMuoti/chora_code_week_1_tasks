@@ -9,11 +9,12 @@ class Task:
     def mark_done(self) -> None:
         self.done = True
     
-class Tasklist:
+class TaskList:
     def __init__(self) -> None:
         self._tasks: list [Task] = []
         
     def __len__(self) -> int:
-        return len(self._tasks)   
-        
-        
+        return len(self._tasks) 
+    
+    def add(self, task:Task) -> None:
+        self._tasks.append(task)
