@@ -18,3 +18,11 @@ class TaskList:
     
     def add(self, task:Task) -> None:
         self._tasks.append(task)
+
+    def get_by_id(self, task_id: str) -> Task:
+        for task in self._tasks:
+            if task_id == task_id:
+                return task
+        
+           
+        
