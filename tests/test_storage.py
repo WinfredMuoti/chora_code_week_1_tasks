@@ -16,3 +16,10 @@ def test_save_then_load_round_trip(tmp_path):
     assert loaded._tasks[0].title == "Buy milk"
     assert loaded._tasks[1].title == "Write tests"
     assert loaded._tasks[0].done is False
+    
+def test_load_missing_file_raises_filenotfounderror(tmp_path):
+    missing_path = tmp_path / "does-not-exist.json"
+    with pytest.raises(FileNotFoundError):
+        load_tasks(missing_path) 
+    
+        
