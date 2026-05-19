@@ -29,3 +29,6 @@ def test_get_by_id_returns_matching_task(populated_list):
 def test_get_by_id_raises_when_not_found(populated_list):
     with pytest.raises(KeyError):
         populated_list.get_by_id("does-not-exist")
+
+def test_complete_marks_task_done():
+    pass

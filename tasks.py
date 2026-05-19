@@ -10,6 +10,7 @@ class Task:
         self.done = True
     
 class TaskList:
+    
     def __init__(self) -> None:
         self._tasks: list [Task] = []
         
@@ -24,5 +25,16 @@ class TaskList:
             if task.id == task_id:
                 return task
         else:
-            raise KeyError(task_id)
+            raise KeyError(task_id)    
+        
+    def complete(self, task_id): 
+        task_list = TaskList()
+
+        task = Task(title="Buy milk")
+
+        task_list.add(task)
+
+        completed_task = task_list.complete(task.id)
+
+        assert completed_task.done is True   
         
