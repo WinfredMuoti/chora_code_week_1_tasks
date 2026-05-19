@@ -29,3 +29,9 @@ def test_get_by_id_returns_matching_task(populated_list):
 def test_get_by_id_raises_when_not_found(populated_list):
     with pytest.raises(KeyError):
         populated_list.get_by_id("does-not-exist")
+
+def test_get_all_returns_all_tasks(populated_list):
+    tasks = populated_list.get_all()
+    assert len(tasks) == 2
+    assert tasks[0].title == "Buy milk"
+    assert tasks[1].title == "Write tests"

@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from uuid import uuid4
+
 @dataclass
 class Task:
     title: str
@@ -25,4 +26,7 @@ class TaskList:
                 return task
         else:
             raise KeyError(task_id)
+
+    def get_all(self) -> list[Task]:
+        return self._tasks
         
