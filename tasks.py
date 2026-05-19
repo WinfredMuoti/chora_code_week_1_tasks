@@ -36,5 +36,12 @@ class TaskList:
 
         completed_task = task_list.complete(task.id)
 
-        assert completed_task.done is True   
+        assert completed_task.done is True  
         
+    def remove(self, task_id):
+        for task in self._tasks:
+         if task.id == task_id:
+            self._tasks.remove(task)
+            return
+
+        raise ValueError("Task not found")
