@@ -14,11 +14,6 @@ class Task:
 
 
 class TaskList:
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> e0a89c4 (fix: align TaskList behavior with tests and improve core logic)
     def __init__(self) -> None:
         """creates an empty task list"""
         self._tasks: list[Task] = []
