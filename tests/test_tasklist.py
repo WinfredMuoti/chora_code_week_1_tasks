@@ -43,15 +43,8 @@ def test_remove_deletes_task_from_list():
     task_list.remove(task.id)
 
     assert len(task_list._tasks) == 0
-<<<<<<< HEAD
     
 def test_remove_raises_error_if_task_not_found():
     task_list = TaskList()
-
-=======
-
-def test_remove_raises_error_if_task_not_found():
-    task_list = TaskList()
->>>>>>> e0a89c4 (fix: align TaskList behavior with tests and improve core logic)
     with pytest.raises(ValueError):
         task_list.remove("missing-id")    

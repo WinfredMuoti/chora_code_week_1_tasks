@@ -21,9 +21,9 @@ def test_list_is_initially_empty(client):
     assert r.json() == {"tasks": []}
 
 def test_create_then_list(client):
-    r = client.post("/tasks", json={"title": "Buy milk"})
-    assert r.status_code == 201
-    assert r.json()["title"] == "Buy milk"
+    response = client.post("/tasks", json={"title": "Buy milk"})
+    assert response.status_code == 201
+    assert response.json()["title"] == "Buy milk"
     listed = client.get("/tasks").json()["tasks"]
     assert len(listed) == 1
 
