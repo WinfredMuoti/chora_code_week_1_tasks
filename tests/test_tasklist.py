@@ -29,3 +29,22 @@ def test_get_by_id_returns_matching_task(populated_list):
 def test_get_by_id_raises_when_not_found(populated_list):
     with pytest.raises(KeyError):
         populated_list.get_by_id("does-not-exist")
+
+def test_complete_marks_task_done():
+    pass
+
+def test_remove_deletes_task_from_list():
+    task_list = TaskList()
+
+    task = Task(title="Buy milk")
+
+    task_list.add(task)
+
+    task_list.remove(task.id)
+
+    assert len(task_list._tasks) == 0
+    
+def test_remove_raises_error_if_task_not_found():
+    task_list = TaskList()
+    with pytest.raises(ValueError):
+        task_list.remove("missing-id")    
