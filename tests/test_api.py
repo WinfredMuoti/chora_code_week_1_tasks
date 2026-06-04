@@ -21,15 +21,15 @@ def test_list_is_initially_empty(client):
     assert r.json() == {"tasks": []}
 
 def test_create_then_list(client):
-    response = client.post("/tasks", json={"title": "Buy milk"})
-    assert response.status_code == 201
-    assert response.json()["title"] == "Buy milk"
+    r = client.post("/tasks", json={"title": "Buy milk"})
+    assert r.status_code == 201
+    assert r.json()["title"] == "Buy milk"
     listed = client.get("/tasks").json()["tasks"]
     assert len(listed) == 1
 
-def test_create_without_title_returns_400(client):
+def test_create_without_title_returns_422(client):
     r = client.post("/tasks", json={})
-    assert r.status_code == 400
+    assert r.status_code == 422
     
 def test_get_task_happy_path(client):
     created = client.post("/tasks", json={"title": "Buy milk"}).json()
@@ -60,3 +60,22 @@ def test_delete_task_happy_path(client):
 def test_delete_task_404(client):
     r = client.delete("/tasks/999")
     assert r.status_code == 404                        
+
+def test_create_with_empty_title_returns_422(client):
+    response = client.post("/tasks", json={})
+    assert response.status_code == 422
+    
+def test_create_with_title_too_long_returns_422(client):
+    response = client.post("/tasks", json={
+        "title": "ajdfdsfeirerfndbvjddffjiuhnbchssdhwuygdyhijyyoiyrrthjhyttrtyhuiuyyytddgnjhh"
+    })
+    assert response.status_code == 422 
+    
+def test_response_includes_id_done_and_created_at(client):
+    response = client.post("/tasks", json={"title": "Buy Milk"}).json()
+    keys = response.keys()
+    assert "id" in keys
+    assert "done" in keys
+    assert "created_at" in keys
+    
+           
