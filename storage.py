@@ -17,14 +17,14 @@ def load_tasks(path: Path) -> TaskList:
 
     task_list = TaskList()
 
-    task_list._tasks = [
-        Task(
+    for item in data:
+        created_at = item.get("created_at", "2026-01-01")
+        task = Task(
             title=item["title"],
             done=item["done"],
             id=item["id"],
-            created_at=datetime.fromisoformat(item["created_at"]),
+            created_at=datetime.fromisoformat(created_at),
         )
-        for item in data
-    ]
-
+        task_list._tasks.append(task)
+        
     return task_list
