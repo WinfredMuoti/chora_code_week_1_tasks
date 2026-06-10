@@ -1,12 +1,13 @@
 from dataclasses import dataclass, field
 from uuid import uuid4
-
+from datetime import datetime
 
 @dataclass
 class Task:
     title: str
     done: bool = False
     id: str = field(default_factory=lambda: str(uuid4()))
+    created_at: datetime = field(default_factory=lambda: datetime.now())
 
     def mark_done(self) -> None:
         """marks a task as completed"""

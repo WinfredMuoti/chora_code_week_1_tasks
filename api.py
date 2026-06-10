@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException
 
 from storage import load_tasks, save_tasks
 from tasks import Task, TaskList
+from schemas import TaskCreate, TaskResponse, TaskListResponse
 
 app = FastAPI(title="Task Manager API")
 
@@ -24,19 +25,19 @@ def root():
     return {"status": "ok"}
 
 
-@app.get("/tasks")
+@app.get("/tasks", response_model=TaskListResponse)
 def list_tasks():
     tl = _load()
-    return {"tasks": [asdict(task) for task in tl._tasks]}
+    return {"tasks": tl._tasks}
 
 
-@app.get("/tasks/{task_id}")
+@app.get("/tasks/{task_id}", response_model=TaskResponse)
 def get_task(task_id: str):
     tl = _load()
 
     try:
         task = tl.get_by_id(task_id)
-        return asdict(task)
+        return task
 
     except KeyError:
         raise HTTPException(
@@ -45,28 +46,17 @@ def get_task(task_id: str):
         )
 
 
-@app.post("/tasks", status_code=201)
-def create_task(payload: dict):
-    title = payload.get("title")
-
-    if not title:
-        raise HTTPException(
-            status_code=400,
-            detail="Title required"
-        )
-
+@app.post("/tasks", status_code=201, response_model=TaskResponse)
+def create_task(payload: TaskCreate):
     tl = _load()
-
-    task = Task(title=title)
-
+    task = Task(title=payload.title)
     tl.add(task)
-
     _persist(tl)
+    return task
 
-    return asdict(task)
 
 
-@app.patch("/tasks/{task_id}/complete")
+@app.patch("/tasks/{task_id}/complete", response_model=TaskResponse)
 def complete_task(task_id: str):
     tl = _load()
 
@@ -81,7 +71,7 @@ def complete_task(task_id: str):
 
     _persist(tl)
 
-    return asdict(task)
+    return task
 
 
 @app.delete("/tasks/{task_id}", status_code=204)
