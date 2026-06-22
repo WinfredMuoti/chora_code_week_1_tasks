@@ -1,23 +1,26 @@
-from dataclasses import asdict
-from pathlib import Path
+# from dataclasses import asdict
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy.orm import Session
 
-from storage import load_tasks, save_tasks
-from tasks import Task, TaskList
-from schemas import TaskCreate, TaskResponse, TaskListResponse
+from database import create_tables
+from repository import (
+    create_task,
+    delete_task,
+    get_all_tasks,
+    get_database_session,
+    get_task_by_id,
+    update_task,
+)
+from schemas import TaskCreate, TaskListResponse, TaskResponse
+from tasks import Task  # TaskList
 
 app = FastAPI(title="Task Manager API")
 
-DATA = Path("tasks.json")
 
-
-def _load() -> TaskList:
-    return load_tasks(DATA) if DATA.exists() else TaskList()
-
-
-def _persist(tl: TaskList) -> None:
-    save_tasks(tl, DATA)
+@app.on_event("startup")
+def startup():
+    create_tables()
 
 
 @app.get("/")
@@ -26,65 +29,53 @@ def root():
 
 
 @app.get("/tasks", response_model=TaskListResponse)
-def list_tasks():
-    tl = _load()
+def list_tasks(db: Session = Depends(get_database_session)):
+    tl = get_all_tasks(db)
     return {"tasks": tl._tasks}
 
 
 @app.get("/tasks/{task_id}", response_model=TaskResponse)
-def get_task(task_id: str):
-    tl = _load()
-
+def get_task(task_id: str, db: Session = Depends(get_database_session)):
     try:
-        task = tl.get_by_id(task_id)
+        task = get_task_by_id(db, task_id)
         return task
-
     except KeyError:
-        raise HTTPException(
-            status_code=404,
-            detail="Task not found"
-        )
+        raise HTTPException(status_code=404, detail="Task not found")
 
 
 @app.post("/tasks", status_code=201, response_model=TaskResponse)
-def create_task(payload: TaskCreate):
-    tl = _load()
-    task = Task(title=payload.title)
-    tl.add(task)
-    _persist(tl)
-    return task
-
+def create_new_task(payload: TaskCreate, db: Session = Depends(get_database_session)):
+    try:
+        task = Task(title=payload.title)
+        create_task(db, task)
+        return task
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.patch("/tasks/{task_id}/complete", response_model=TaskResponse)
-def complete_task(task_id: str):
-    tl = _load()
-
+def complete_task(task_id: str, db: Session = Depends(get_database_session)):
     try:
-        task = tl.complete(task_id)
+        row = get_task_by_id(db, task_id)
 
-    except KeyError:
-        raise HTTPException(
-            status_code=404,
-            detail="Task not found"
+        task = Task(
+            id=row.id,
+            title=row.title,
+            done=True,
+            created_at=row.created_at,
         )
 
-    _persist(tl)
+        update_task(db, task)
 
-    return task
+        return get_task_by_id(db, task_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Task not found")
 
 
 @app.delete("/tasks/{task_id}", status_code=204)
-def delete_task(task_id: str):
-    tl = _load()
-
+def remove_task(task_id: str, db: Session = Depends(get_database_session)):
     try:
-        tl.remove(task_id)
+        delete_task(db, task_id)
 
     except ValueError:
-        raise HTTPException(
-            status_code=404,
-            detail="Task not found"
-        )
-
-    _persist(tl)
+        raise HTTPException(status_code=404, detail="Task not found")
