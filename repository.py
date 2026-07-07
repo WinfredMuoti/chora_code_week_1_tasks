@@ -11,6 +11,7 @@ def _task_model_to_task(row: TaskModel) -> Task:
         id=row.id,
         title=row.title,
         done=row.done,
+        user_id=row.user_id,
         created_at=row.created_at,
     )
 
@@ -20,6 +21,7 @@ def _task_to_task_model(task: Task) -> TaskModel:
         id=task.id,
         title=task.title,
         done=task.done,
+        user_id=task.user_id,
         created_at=task.created_at,
     )
 
@@ -53,23 +55,29 @@ def get_task_by_id(db: Session, task_id: str) -> Any:
     return row
 
 
-def update_task(db: Session, task: Task) -> None:
-    row = db.get(TaskModel, task.id)
-
+def update_task(db: Session, task_id: str) -> None:
+    row = db.get(TaskModel, task_id)
     if row is None:
-        raise KeyError(task.id)
-
-    row.done = task.done
-    row.title = task.title
-
+        raise KeyError(task_id)
+    row.done = True
     db.commit()
 
-
-def delete_task(db: Session, task_id: str) -> None:
+def update_task_title(db: Session, task_id: str, title: str) -> None:
     row = db.get(TaskModel, task_id)
 
     if row is None:
         raise KeyError(task_id)
 
+    row.title = title
+    db.commit()
+
+
+def delete_task(db: Session, task_id: str) -> None:
+    row = db.get(TaskModel, task_id)
+    if row is None:
+        raise KeyError(task_id)
     db.delete(row)
     db.commit()
+
+
+#create def update task title, update readme file,update commit,

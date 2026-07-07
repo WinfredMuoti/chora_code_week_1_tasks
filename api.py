@@ -5,14 +5,16 @@ from sqlalchemy.orm import Session
 
 from database import create_tables
 from repository import (
+    _task_model_to_task,
     create_task,
     delete_task,
     get_all_tasks,
     get_database_session,
     get_task_by_id,
     update_task,
+     update_task_title
 )
-from schemas import TaskCreate, TaskListResponse, TaskResponse
+from schemas import TaskCreate, TaskListResponse, TaskResponse, TaskUpdate
 from tasks import Task  # TaskList
 
 app = FastAPI(title="Task Manager API")
@@ -46,26 +48,18 @@ def get_task(task_id: str, db: Session = Depends(get_database_session)):
 @app.post("/tasks", status_code=201, response_model=TaskResponse)
 def create_new_task(payload: TaskCreate, db: Session = Depends(get_database_session)):
     try:
-        task = Task(title=payload.title)
+        dummy_id = "123"
+        task = Task(title=payload.title, user_id=dummy_id)
         create_task(db, task)
         return task
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.patch("/tasks/{task_id}/complete", response_model=TaskResponse)
 def complete_task(task_id: str, db: Session = Depends(get_database_session)):
     try:
-        row = get_task_by_id(db, task_id)
-
-        task = Task(
-            id=row.id,
-            title=row.title,
-            done=True,
-            created_at=row.created_at,
-        )
-
-        update_task(db, task)
+        update_task(db, task_id)
 
         return get_task_by_id(db, task_id)
     except KeyError:
@@ -78,4 +72,19 @@ def remove_task(task_id: str, db: Session = Depends(get_database_session)):
         delete_task(db, task_id)
 
     except ValueError:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+
+@app.patch("/tasks/{task_id}/title", response_model=TaskResponse)
+def change_task_title(
+    task_id: str,
+    payload: TaskUpdate,
+    db: Session = Depends(get_database_session),
+):
+    try:
+        update_task_title(db, task_id, payload.title)
+
+        return get_task_by_id(db, task_id)
+
+    except KeyError:
         raise HTTPException(status_code=404, detail="Task not found")
