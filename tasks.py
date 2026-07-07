@@ -5,6 +5,7 @@ from datetime import datetime
 @dataclass
 class Task:
     title: str
+    user_id: str
     done: bool = False
     id: str = field(default_factory=lambda: str(uuid4()))
     created_at: datetime = field(default_factory=lambda: datetime.now())
