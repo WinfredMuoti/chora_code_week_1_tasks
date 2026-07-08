@@ -1,20 +1,33 @@
-# from dataclasses import asdict
+from uuid import uuid4
 
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from database import create_tables
+from auth import (
+    create_access_token,
+    hash_password,
+    verify_password,
+)
+from database import UserModel, create_tables
 from repository import (
-    _task_model_to_task,
     create_task,
     delete_task,
     get_all_tasks,
     get_database_session,
     get_task_by_id,
     update_task,
-     update_task_title
+    update_task_title,
 )
-from schemas import TaskCreate, TaskListResponse, TaskResponse, TaskUpdate
+from schemas import (
+    TaskCreate,
+    TaskListResponse,
+    TaskResponse,
+    TaskUpdate,
+    TokenResponse,
+    UserRegister,
+    UserResponse,
+)
 from tasks import Task  # TaskList
 
 app = FastAPI(
@@ -44,6 +57,66 @@ def startup():
 def root():
     """Return `{"status": "ok"}` when the API is up."""
     return {"status": "ok"}
+
+
+@app.post(
+    "/auth/register",
+    status_code=201,
+    response_model=UserResponse,
+    tags=["authentication"],
+    summary="Register a new user",
+)
+def register(
+    payload: UserRegister,
+    db: Session = Depends(get_database_session),
+):
+    """Register a new user account."""
+
+    existing = db.query(UserModel).filter_by(email=payload.email).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered",
+        )
+
+    user = UserModel(
+        id=str(uuid4()),
+        email=payload.email,
+        password_hash=hash_password(payload.password),
+    )
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return user
+
+
+@app.post(
+    "/auth/login",
+    response_model=TokenResponse,
+    tags=["authentication"],
+    summary="Authenticate a user",
+)
+def login(
+    form: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_database_session),
+):
+    """Authenticate a user and return a JWT access token."""
+
+    user = db.query(UserModel).filter_by(email=form.username).first()
+
+    if not user or not verify_password(
+        form.password,
+        user.password_hash,
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid credentials",
+        )
+
+    return TokenResponse(access_token=create_access_token(user.id))
 
 
 @app.get(
