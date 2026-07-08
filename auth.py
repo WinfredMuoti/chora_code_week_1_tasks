@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from sqlalchemy.orm import Session
 
 from database import UserModel
@@ -15,17 +15,27 @@ SECRET_KEY = os.environ["JWT_SECRET"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRES_MINUTES = 60
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def hash_password(plain: str) -> str:
-    return pwd_context.hash(plain)
-
+    # 1. Convert plain text password to bytes
+    password_bytes = plain.encode('utf-8')
+    
+    # 2. Generate a salt and hash the password
+    salt = bcrypt.gensalt()
+    hashed_bytes = bcrypt.hashpw(password_bytes, salt)
+    
+    # 3. Decode back to a string so you can save it in a standard string DB column
+    return hashed_bytes.decode('utf-8')
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    # Convert both the plain text and stored hash into bytes to check them
+    return bcrypt.checkpw(
+        plain.encode('utf-8'), 
+        hashed.encode('utf-8')
+    )
 
 
 def create_access_token(user_id: str) -> str:
